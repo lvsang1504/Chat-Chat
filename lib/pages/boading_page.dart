@@ -15,7 +15,7 @@ final pagelist = [
         fontSize: 34.0,
       ),
     ),
-    body: const Text("Welcome to DockChat \n \n Swipe next ➡",
+    body: const Text("Welcome to ChatChat \n \n Swipe next ➡",
         textAlign: TextAlign.center,
         style: TextStyle(
           color: Colors.white,
@@ -44,7 +44,7 @@ final pagelist = [
     ),
   ),
   PageModel(
-    color:  Color(0xff292D38),
+    color:  const Color(0xff292D38),
     heroImagePath: "images/Group_chat.png",
     iconImagePath: "images/connect.png",
     title: const Text(

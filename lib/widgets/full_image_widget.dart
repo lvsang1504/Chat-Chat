@@ -10,7 +10,7 @@ class FullPhoto extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Colors.black87,
         iconTheme: const IconThemeData(
           color: Colors.white,
         ),
@@ -28,16 +28,17 @@ class FullPhoto extends StatelessWidget {
 class FullPhotoScreen extends StatefulWidget {
   final String url;
 
-  FullPhotoScreen({Key? key, required this.url}) : super(key: key);
+  const FullPhotoScreen({Key? key, required this.url}) : super(key: key);
 
   @override
-  State createState() => FullPhotoScreenState(url: url);
+  // ignore: no_logic_in_create_state
+  State createState() => _FullPhotoScreenState(url: url);
 }
 
-class FullPhotoScreenState extends State<FullPhotoScreen> {
+class _FullPhotoScreenState extends State<FullPhotoScreen> {
   final String url;
 
-  FullPhotoScreenState({required this.url});
+  _FullPhotoScreenState({required this.url});
 
   @override
   void initState() {
@@ -48,10 +49,7 @@ class FullPhotoScreenState extends State<FullPhotoScreen> {
   Widget build(BuildContext context) {
     return Hero(
       tag: "hero",
-      // ignore: avoid_unnecessary_containers
-      child: Container(
-        child: PhotoView(imageProvider: NetworkImage(url)),
-      ),
+      child: PhotoView(imageProvider: NetworkImage(url)),
     );
   }
 }

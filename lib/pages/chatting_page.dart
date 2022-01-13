@@ -308,13 +308,39 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  updateAction(DocumentSnapshot doc, int type) {
+    String idMessage = doc["timestamp"];
+    print(idMessage);
+
+    int temp = doc["action"];
+
+    if (temp == type) type = 0;
+
+    FirebaseFirestore.instance
+        .collection('messages')
+        .doc(chatID)
+        .collection(chatID)
+        .doc(idMessage)
+        .update({"action": type}).then((value) {
+      Fluttertoast.showToast(
+          msg: "Updated action successfully",
+          backgroundColor: Theme.of(context).primaryColor);
+    });
+    Navigator.pop(context);
+  }
+
   Widget createItem(int index, DocumentSnapshot doc) {
     // sender is me : showing on right side
     if (doc["idFrom"] == id) {
       return messageOfMe(doc, index);
     } else {
       // sender is NOT me : showing on left side
-      return messageOfUser(index, doc);
+      return GestureDetector(
+        onTap: () {
+          showModalBottomSheetChangeTone(context, doc);
+        },
+        child: messageOfUser(index, doc),
+      );
     }
   }
 
@@ -323,7 +349,7 @@ class ChatScreenState extends State<ChatScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       child: Column(
         children: [
-          Padding(
+          Container(
             padding: const EdgeInsets.all(8.0),
             child: Text(
               DateFormat("hh:mm dd/MM/yyyy").format(
@@ -364,80 +390,96 @@ class ChatScreenState extends State<ChatScreen> {
                     ),
               // Dislay the user message
               doc["type"] == 0
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Container(
-                        constraints: const BoxConstraints(maxWidth: 200),
-                        padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
-                        decoration: const BoxDecoration(
-                          color: Colors.white24,
-                          borderRadius: BorderRadius.only(
-                              topRight: Radius.circular(15),
-                              bottomRight: Radius.circular(15),
-                              bottomLeft: Radius.circular(15)),
-                        ),
-                        child: Text(
-                          doc['contextMsg'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                    )
-                  : doc["type"] == 1
-                      ? Container(
-                          margin: const EdgeInsets.only(left: 10),
-                          child: TextButton(
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    FullPhoto(url: doc['contextMsg']),
+                  ? Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Container(
+                            constraints: const BoxConstraints(maxWidth: 200),
+                            padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+                            decoration: const BoxDecoration(
+                              color: Colors.white24,
+                              borderRadius: BorderRadius.only(
+                                  topRight: Radius.circular(15),
+                                  bottomRight: Radius.circular(15),
+                                  bottomLeft: Radius.circular(15)),
+                            ),
+                            child: Text(
+                              doc['contextMsg'],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
-                            child: Material(
-                                child: CachedNetworkImage(
-                                  placeholder: (context, url) => Container(
-                                    width: 200,
-                                    height: 200,
-                                    padding: const EdgeInsets.all(70),
-                                    decoration: BoxDecoration(
-                                        color: Colors.grey,
-                                        borderRadius: BorderRadius.circular(8)),
-                                    child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation(
-                                          Theme.of(context).primaryColor),
-                                    ),
+                          ),
+                        ),
+                        buildActionLeft(doc),
+                      ],
+                    )
+                  : doc["type"] == 1
+                      ? Stack(
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(left: 10),
+                              child: TextButton(
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        FullPhoto(url: doc['contextMsg']),
                                   ),
-                                  imageUrl: doc['contextMsg'],
-                                  height: 200,
-                                  width: 200,
-                                  fit: BoxFit.cover,
-                                  errorWidget: (context, url, error) =>
-                                      Material(
-                                          child: Image.asset(
-                                            'images/img_not_available.jpeg',
-                                            height: 200,
-                                            width: 200,
-                                            fit: BoxFit.cover,
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          clipBehavior: Clip.hardEdge),
                                 ),
-                                borderRadius: BorderRadius.circular(8),
-                                clipBehavior: Clip.hardEdge),
-                          ),
+                                child: Material(
+                                    child: CachedNetworkImage(
+                                      placeholder: (context, url) => Container(
+                                        width: 200,
+                                        height: 200,
+                                        padding: const EdgeInsets.all(70),
+                                        decoration: BoxDecoration(
+                                            color: Colors.grey,
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        child: CircularProgressIndicator(
+                                          valueColor: AlwaysStoppedAnimation(
+                                              Theme.of(context).primaryColor),
+                                        ),
+                                      ),
+                                      imageUrl: doc['contextMsg'],
+                                      height: 200,
+                                      width: 200,
+                                      fit: BoxFit.cover,
+                                      errorWidget: (context, url, error) =>
+                                          Material(
+                                              child: Image.asset(
+                                                'images/img_not_available.jpeg',
+                                                height: 200,
+                                                width: 200,
+                                                fit: BoxFit.cover,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              clipBehavior: Clip.hardEdge),
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                    clipBehavior: Clip.hardEdge),
+                              ),
+                            ),
+                            buildActionLeft(doc),
+                          ],
                         )
-                      : Container(
-                          margin: const EdgeInsets.all(10),
-                          child: Image.asset(
-                            "images/stickers/${doc['contextMsg']}.gif",
-                            height: 100,
-                            width: 100,
-                            fit: BoxFit.cover,
-                          ),
+                      : Stack(
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.all(10),
+                              child: Image.asset(
+                                "images/stickers/${doc['contextMsg']}.gif",
+                                height: 100,
+                                width: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            buildActionLeft(doc),
+                          ],
                         ),
             ],
           ),
@@ -461,116 +503,196 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Column messageOfMe(DocumentSnapshot<Object?> doc, int index) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            DateFormat("hh:mm aa dd/MM/yyyy").format(
-                DateTime.fromMillisecondsSinceEpoch(
-                    int.parse(doc["timestamp"]))),
-            style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 10,
-                fontStyle: FontStyle.italic),
+  Container messageOfMe(DocumentSnapshot<Object?> doc, int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              DateFormat("hh:mm aa dd/MM/yyyy").format(
+                  DateTime.fromMillisecondsSinceEpoch(
+                      int.parse(doc["timestamp"]))),
+              style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 10,
+                  fontStyle: FontStyle.italic),
+            ),
           ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            // doc["type"]
-            // 0 = text , 1 = image , 2 = stickers
-            // doc["type"]==0 ? Container(text)  :  doc["type"]==1 ? Container(image): Container(stickers),
-            doc["type"] == 0
-                ? Container(
-                    padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
-                    constraints: const BoxConstraints(maxWidth: 200),
-                    decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(15),
-                            bottomRight: Radius.circular(15),
-                            bottomLeft: Radius.circular(15))),
-                    child: Text(
-                      doc['contextMsg'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  )
-                : doc["type"] == 1
-                    ? Container(
-                        margin: EdgeInsets.only(
-                            bottom: isLastMsgRight(index) ? 20 : 10, right: 10),
-                        child: TextButton(
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  FullPhoto(url: doc['contextMsg']),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              // doc["type"]
+              // 0 = text , 1 = image , 2 = stickers
+              // doc["type"]==0 ? Container(text)  :  doc["type"]==1 ? Container(image): Container(stickers),
+              doc["type"] == 0
+                  ? Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+                            constraints: const BoxConstraints(maxWidth: 200),
+                            decoration: const BoxDecoration(
+                                color: Colors.deepPurple,
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(15),
+                                    bottomRight: Radius.circular(15),
+                                    bottomLeft: Radius.circular(15))),
+                            child: Text(
+                              doc['contextMsg'],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                          child: Material(
-                              child: CachedNetworkImage(
-                                placeholder: (context, url) => Container(
-                                  width: 200,
-                                  height: 200,
-                                  padding: const EdgeInsets.all(70),
-                                  decoration: BoxDecoration(
-                                      color: Colors.grey,
-                                      borderRadius: BorderRadius.circular(8)),
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation(
-                                        Theme.of(context).primaryColor),
+                        ),
+                        buildAction(doc),
+                      ],
+                    )
+                  : doc["type"] == 1
+                      ? Stack(
+                          children: [
+                            Container(
+                              margin: EdgeInsets.only(
+                                  bottom: isLastMsgRight(index) ? 20 : 10,
+                                  right: 10),
+                              child: TextButton(
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        FullPhoto(url: doc['contextMsg']),
                                   ),
                                 ),
-                                imageUrl: doc['contextMsg'],
-                                height: 200,
-                                width: 200,
-                                fit: BoxFit.cover,
-
-                                // if somehow image can't be retrive or showed then show not available image
-                                errorWidget: (context, url, error) => Material(
-                                    child: Image.asset(
-                                      'images/img_not_available.jpeg',
+                                child: Material(
+                                    child: CachedNetworkImage(
+                                      placeholder: (context, url) => Container(
+                                        width: 200,
+                                        height: 200,
+                                        padding: const EdgeInsets.all(70),
+                                        decoration: BoxDecoration(
+                                            color: Colors.grey,
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        child: CircularProgressIndicator(
+                                          valueColor: AlwaysStoppedAnimation(
+                                              Theme.of(context).primaryColor),
+                                        ),
+                                      ),
+                                      imageUrl: doc['contextMsg'],
                                       height: 200,
                                       width: 200,
                                       fit: BoxFit.cover,
+
+                                      // if somehow image can't be retrive or showed then show not available image
+                                      errorWidget: (context, url, error) =>
+                                          Material(
+                                              child: Image.asset(
+                                                'images/img_not_available.jpeg',
+                                                height: 200,
+                                                width: 200,
+                                                fit: BoxFit.cover,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              clipBehavior: Clip.hardEdge),
                                     ),
                                     borderRadius: BorderRadius.circular(8),
                                     clipBehavior: Clip.hardEdge),
                               ),
-                              borderRadius: BorderRadius.circular(8),
-                              clipBehavior: Clip.hardEdge),
+                            ),
+                            buildAction(doc),
+                          ],
+                        )
+                      : Stack(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.only(bottom: 25),
+                              child: Image.asset(
+                                "images/stickers/${doc['contextMsg']}.gif",
+                                height: 100,
+                                width: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            buildAction(doc),
+                          ],
                         ),
-                      )
-                    : Container(
-                        padding: const EdgeInsets.only(bottom: 25),
-                        child: Image.asset(
-                          "images/stickers/${doc['contextMsg']}.gif",
-                          height: 100,
-                          width: 100,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-          ],
-        ),
-        // Container(
-        //     padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
-        //     margin: EdgeInsets.only(
-        //         bottom: isLastMsgRight(index) ? 20 : 10, left: 10),
-        //     child: Text(
-        //       DateFormat("hh:mm dd/MM/yyyy").format(
-        //           DateTime.fromMillisecondsSinceEpoch(
-        //               int.parse(doc["timestamp"])) ),
-        //       style: const TextStyle(
-        //           color: Colors.grey,
-        //           fontSize: 10,
-        //           fontStyle: FontStyle.italic),
-        //     )),
-      ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Positioned buildAction(DocumentSnapshot<Object?> doc) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      child: doc["action"] == 1
+          ? Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.thumb_up_rounded,
+                color: Colors.blue,
+                size: 12,
+              ),
+            )
+          : doc["action"] == 2
+              ? Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.thumb_down_rounded,
+                    color: Colors.blue,
+                    size: 12,
+                  ),
+                )
+              : const SizedBox.shrink(),
+    );
+  }
+
+  Positioned buildActionLeft(DocumentSnapshot<Object?> doc) {
+    return Positioned(
+      bottom: 0,
+      right: 0,
+      child: doc["action"] == 1
+          ? Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.thumb_up_rounded,
+                color: Colors.blue,
+                size: 12,
+              ),
+            )
+          : doc["action"] == 2
+              ? Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.thumb_down_rounded,
+                    color: Colors.blue,
+                    size: 12,
+                  ),
+                )
+              : const SizedBox.shrink(),
     );
   }
 
@@ -1094,19 +1216,21 @@ class ChatScreenState extends State<ChatScreen> {
 //  type =2:its a StickerEmojies
 
     if (contextMsg != "") {
+      String idMessage = DateTime.now().millisecondsSinceEpoch.toString();
       textEditingController.clear();
       var docMsgRef = FirebaseFirestore.instance
           .collection("messages")
           .doc(chatID)
           .collection(chatID)
-          .doc(DateTime.now().millisecondsSinceEpoch.toString());
+          .doc(idMessage);
       FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.set(docMsgRef, {
           "idFrom": id,
           "idTo": receiverId,
-          "timestamp": DateTime.now().millisecondsSinceEpoch.toString(),
+          "timestamp": idMessage,
           "contextMsg": contextMsg,
-          "type": type
+          "type": type,
+          "action": 0,
         });
       });
       listscrollController.animateTo(0.0,
@@ -1114,6 +1238,93 @@ class ChatScreenState extends State<ChatScreen> {
     } else {
       Fluttertoast.showToast(msg: "Empty message can't be send !");
     }
+  }
+
+  void showModalBottomSheetChangeTone(
+      BuildContext context, DocumentSnapshot<Object?> doc) async {
+    int temp = doc["action"] ?? 0;
+    showModalBottomSheet(
+        barrierColor: Colors.transparent,
+        elevation: 10,
+        backgroundColor: Colors.white,
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20.0), topRight: Radius.circular(20.0)),
+        ),
+        builder: (builder) {
+          return Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: SizedBox(
+              height: 150,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      GestureDetector(
+                        onTap: () => updateAction(doc, 1),
+                        child: Column(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color:
+                                    temp == 1 ? Colors.grey[300] : Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(8.0),
+                              child: const Icon(
+                                Icons.thumb_up_rounded,
+                                color: Colors.blue,
+                                size: 30,
+                              ),
+                            ),
+                            const Text(
+                              "Like",
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => updateAction(doc, 2),
+                        child: Column(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color:
+                                    temp == 2 ? Colors.grey[300] : Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(8.0),
+                              child: const Icon(
+                                Icons.thumb_down_rounded,
+                                color: Colors.blue,
+                                size: 30,
+                              ),
+                            ),
+                            const Text(
+                              "Unlike",
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
   }
 
   @override

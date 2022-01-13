@@ -215,7 +215,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                   borderRadius: BorderRadius.circular(125),
                                   clipBehavior: Clip.hardEdge,
                                 )
-                              : Icon(
+                              : const Icon(
                                   Icons.account_circle,
                                   size: 90,
                                   color: Colors.grey,
@@ -238,7 +238,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           color: Colors.white54.withOpacity(0.3),
                         ),
                         onPressed: getImage,
-                        padding: EdgeInsets.all(0.0),
+                        padding: const EdgeInsets.all(0.0),
                         splashColor: Colors.transparent,
                         highlightColor: Colors.grey,
                         iconSize: 200,
@@ -247,7 +247,7 @@ class _SettingScreenState extends State<SettingScreen> {
                   ),
                 ),
                 width: double.infinity,
-                margin: EdgeInsets.all(20),
+                margin: const EdgeInsets.all(20),
               ),
               Column(
                 children: <Widget>[
@@ -367,6 +367,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     height: 70,
                     padding: const EdgeInsets.fromLTRB(30, 10, 30, 10),
                     margin: const EdgeInsets.only(top: 50, bottom: 2),
+                    // ignore: deprecated_member_use
                     child: RaisedButton(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30.0)),
@@ -388,6 +389,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     width: 200,
                     height: 50,
                     padding: const EdgeInsets.only(left: 50, right: 50),
+                    // ignore: deprecated_member_use
                     child: RaisedButton(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30.0)),

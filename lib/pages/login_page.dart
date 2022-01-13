@@ -121,7 +121,7 @@ class LoginScreenState extends State<LoginScreen> {
         elevation: 0,
         //Theme.of(context).scaffoldBackgroundColor,
         title: const Text(
-          'DockChat',
+          'ChatChat',
           style: TextStyle(
             fontSize: 25,
             color: Colors.white,
@@ -148,7 +148,7 @@ class LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               Text(
-                'Welcome to DockChat',
+                'Welcome to ChatChat',
                 style: TextStyle(
                     color: Colors.grey[600],
                     fontWeight: FontWeight.w500,
@@ -228,7 +228,7 @@ class DevloperInfo extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         Text(
-          'Developed by © Swaraj',
+          'Developed by © Lương Văn Sang',
           style: TextStyle(color: Colors.grey, letterSpacing: 1.2),
           textAlign: TextAlign.center,
         ),
